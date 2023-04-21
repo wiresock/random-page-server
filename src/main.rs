@@ -1,17 +1,20 @@
 // Importing required libraries for building a web server.
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Request, Response, Server};
-use hyper::http::{StatusCode};
+use hyper::http::StatusCode;
 use std::convert::Infallible;
+use std::env;
 use std::net::SocketAddr;
 use tokio::sync::oneshot;
 use tokio::runtime::Builder;
 
-// This async function runs the main logic of the program.
-async fn main_async() {
-    // Initializes an address to which the server will listen on.
-    let addr = SocketAddr::from(([0, 0, 0, 0], 80));
+const DEFAULT_HTTP_PORT: u16 = 80;
 
+// This async function runs the main logic of the program.
+async fn main_async(port: u16) {
+    // Initializes an address to which the server will listen on.
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+    
     // Defines a `make_service` function that accepts a Connection and returns a new service to handle requests from the connection.
     let make_svc = make_service_fn(|_conn| {
         async { Ok::<_, Infallible>(service_fn(handle_request)) }
@@ -51,6 +54,19 @@ async fn main_async() {
 
 // The main function of the program.
 fn main() {
+    // Collects command line argument values into a vector of strings.
+    let args: Vec<String> = env::args().collect();
+    // Initializes port variable.
+    let mut port = DEFAULT_HTTP_PORT;
+
+    // If exactly one command line argument is present, it will be used as the server's port number.
+    if args.len() == 2 {
+        // Attempts to parse the command line argument as an unsigned 16 bit integer.
+        port = args[1].parse::<u16>()
+            // If the parsing fails, the default value of 80 is used instead.
+            .unwrap_or(DEFAULT_HTTP_PORT);
+    }
+
     // Builds a new Tokio runtime instance for executing async functions.
     let runtime = Builder::new_multi_thread()
         .worker_threads(num_cpus::get()) // Sets the number of worker threads to the number of CPUs available.
@@ -59,7 +75,7 @@ fn main() {
         .unwrap();
     
     // Executes the `main_async()` function using the previously defined runtime instance.
-    runtime.block_on(main_async());
+    runtime.block_on(main_async(port));
 }
 
 // Defines an async function that handles incoming HTTP requests.
