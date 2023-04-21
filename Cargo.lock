@@ -448,6 +448,7 @@ name = "web-test"
 version = "0.1.0"
 dependencies = [
  "hyper",
+ "num_cpus",
  "tokio",
 ]
 
