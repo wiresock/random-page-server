@@ -1,5 +1,5 @@
 [package]
-name = "web-test"
+name = "random-page-server"
 version = "0.1.0"
 edition = "2021"
 
